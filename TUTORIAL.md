@@ -221,7 +221,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.register),
+    path('admin/', admin.site.urls),
     # This redirects all traffic (except /admin/) to our bookshelf app URLs
     path('', include('bookshelf.urls')),
 ]
@@ -965,6 +965,44 @@ Open your web browser (Chrome, Edge, Firefox) and go to:
 
 To log into your admin control panel, go to:
 👉 **`http://127.0.0.1:8000/admin/`** (Use the superuser username and password you created in Step 5!)
+
+---
+
+## ⚠️ Crucial Debugging Moment: The Admin View Error
+
+As a developer, you will encounter bugs! Let's examine a very common error you might face when visiting `/admin/` and learn exactly how to understand and fix it.
+
+### 🔴 The Error Message:
+```text
+ValueError: The view django.contrib.admin.sites.method.__call__ didn't return an HttpResponse object. It returned None instead.
+[21/May/2026 12:59:14] "GET /admin/ HTTP/1.1" 500 71135
+```
+
+### 🔍 Why did this happen? (Understanding the Traceback)
+Let's decode what Django is telling you:
+1. **"The view ... didn't return an HttpResponse object"**: In Django, every view function must return a valid Web Response (which contains the HTML page data). If a view function finishes executing and doesn't return anything (or returns `None`), Django has nothing to send back to the user's browser, so it throws a `ValueError`.
+2. **"It returned None instead."**: Our route for `/admin/` was set up as:
+   `path('admin/', admin.site.register),`
+   * `admin.site.register` is a **method** used in Python code (like in `admin.py`) to register a model database structure. It is *not* a Web View function! 
+   * When Python executes a function that does not have a `return` statement (like the registration helper method), it automatically returns `None` at the end.
+   * Therefore, Django called this method as a web page view, received `None`, and crashed!
+
+### 🛠️ How to fix it:
+We must change `admin.site.register` to `admin.site.urls` in our URL configuration file.
+
+1. Open **[book_tracker/urls.py](file:///c:/Users/awhaz/Documents/Systems/pyco/book_tracker/urls.py)**.
+2. Find this line:
+   ```python
+   path('admin/', admin.site.register),
+   ```
+3. Change it to:
+   ```python
+   path('admin/', admin.site.urls),
+   ```
+
+### 🧠 What is `admin.site.urls`?
+* **`admin.site.urls`** is a special object provided by Django's admin system. Under the hood, it contains a pre-built list of all the admin control panel's URLs and view functions (login pages, edit forms, list views, etc.).
+* By passing `admin.site.urls` to the router path, we are delegating all traffic that starts with `/admin/` to Django's built-in Admin App controller, which correctly returns beautifully-rendered admin HTML pages (`HttpResponse` objects)!
 
 ---
 

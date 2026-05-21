@@ -19,7 +19,7 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('admin/', admin.site.register),
+    path('admin/', admin.site.urls),
     # This redirects all traffic (except /admin/) to our bookshelf app URLs
     path('', include('bookshelf.urls')),
 ]
